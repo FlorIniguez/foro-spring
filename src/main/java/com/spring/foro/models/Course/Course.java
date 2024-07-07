@@ -2,11 +2,8 @@ package com.spring.foro.models.Course;
 
 
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 
@@ -29,6 +26,12 @@ public class Course {
     public Course(CreateCourse createCourse) {
         this.name = createCourse.name();
         this.category = createCourse.category();
+    }
+    public Course updateCourse(CreateCourse createCourse){
+        this.name = createCourse.name();
+        this.category = createCourse.category();
+        return this;
+
     }
 }
 

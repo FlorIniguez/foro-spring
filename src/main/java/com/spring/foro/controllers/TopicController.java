@@ -1,20 +1,17 @@
 package com.spring.foro.controllers;
 
+import com.spring.foro.infra.errors.ResourcedNotFoundException;
 import com.spring.foro.models.Topic.*;
-import com.spring.foro.models.User.UserForum;
-import com.spring.foro.models.User.UserForumRepository;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/topics")
@@ -29,19 +26,52 @@ public class TopicController {
     @PostMapping
     @Transactional
     public ResponseEntity<TopicResponse> createTopic(@RequestBody @Valid CreateTopic createTopic) {
-
-        // Buscar el usuario por ID
-//        UserForum author = userForumRepository.findById(createTopic.id_user())
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        Topic topic = new Topic(createTopic);
-//        topic.setAuthor(author);
-//        topicRepository.save(topic);
-//        TopicResponse response = new TopicResponse(topic.getId(), topic.getTitle(), topic.getContent(), topic.getCreationDate());
-//        URI url = uriComponentsBuilder.path("/topics/{id}").buildAndExpand(topic.getId()).toUri();
-//        return ResponseEntity.created(url).body(response);
-        TopicResponse response  = topicService.create(createTopic);
+        TopicResponse response = topicService.create(createTopic);
         return ResponseEntity.ok(response);
-
     }
+
+    @GetMapping
+    public ResponseEntity<Page<ListOfTopics>> topicsList(Pageable pagination) {
+        //configuro orden
+        return ResponseEntity.ok(topicRepository.findAllByStatusTrueOrderByCreationDateAsc(pagination).map(ListOfTopics::new));
+    }
+
+    @GetMapping("/course/{courseName}")
+    //listar por nombre del curso
+    public ResponseEntity<Page<ListOfTopics>> listTopicsByCourse(@PathVariable String courseName, Pageable pagination) {
+        Page<Topic> topicsPage = topicRepository.findAllByCourseNameIgnoreCase(courseName, pagination);
+        Page<ListOfTopics> listOfTopicsPage = topicsPage.map(ListOfTopics::new);
+        return ResponseEntity.ok(listOfTopicsPage);
+    }
+
+    //BUSCAR POR ID
+    @GetMapping("/{id}")
+    public ResponseEntity<TopicResponse> topicById(@PathVariable Long id) throws ResourcedNotFoundException {
+        Topic topic = topicRepository.findById(id)
+                .orElseThrow(() -> new ResourcedNotFoundException("Topic", "id", id));
+
+        TopicResponse topicResponse = new TopicResponse(topic.getId(), topic.getTitle(), topic.getContent(), topic.getAuthor().getUsername(), topic.getCourse().getName(), topic.getCreationDate());
+        return ResponseEntity.ok(topicResponse);
+    }
+
+    //ACTUALIZAR UN TOPICO
+    @PutMapping("/update/{id}")
+    public ResponseEntity<TopicResponse> updateTopic(@PathVariable Long id, @RequestBody @Valid DataUpdateTopic dataUpdateTopic) {
+        Topic topic = topicRepository.findById(id)
+                .orElseThrow(() -> new ResourcedNotFoundException("Topic", "id", id));
+        topic.updateTopic(dataUpdateTopic);
+// Guardar los cambios en la base de datos
+        topicRepository.save(topic);
+        return ResponseEntity.ok(new TopicResponse(topic.getId(), topic.getTitle(), topic.getContent(), topic.getAuthor().getUsername(),
+                topic.getCourse().getName(), topic.getCreationDate()));
+    }
+@DeleteMapping("/delete/{id}")
+@Transactional
+   public  ResponseEntity deleteTopic(@PathVariable Long id){
+    Topic topic = topicRepository.findById(id)
+            .orElseThrow(() -> new ResourcedNotFoundException("Topic", "id", id));
+    topic.deactivateTopic();
+    return ResponseEntity.noContent().build();
+}
+
 }

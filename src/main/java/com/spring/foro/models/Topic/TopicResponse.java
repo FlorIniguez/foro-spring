@@ -8,6 +8,8 @@ public record TopicResponse(
         Long topic_id,
         String title,
         String content,
+        String authorName,
+        String courseName,
         LocalDateTime creationDate) {
 
 
