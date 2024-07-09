@@ -47,14 +47,14 @@ public class Topic {
         this.author = author;
     }
 
-    public void updateTopic(DataUpdateTopic dataUpdateTopic){
-        if (dataUpdateTopic.title() != null){
+    public void updateTopic(DataUpdateTopic dataUpdateTopic) {
+        if (dataUpdateTopic.title() != null) {
             this.title = dataUpdateTopic.title();
         }
-        if (dataUpdateTopic.courseName() != null){
+        if (dataUpdateTopic.courseName() != null) {
             this.course = course;
         }
-        if (dataUpdateTopic.content() != null){
+        if (dataUpdateTopic.content() != null) {
             this.content = dataUpdateTopic.content();
         }
         this.setCreationDate(LocalDateTime.now());

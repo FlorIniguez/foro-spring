@@ -18,7 +18,7 @@ public class Course {
     private Long id;
 
     private String name;
-
+    //private Boolean active;
     @Enumerated(EnumType.STRING)
     private Category category;
 
@@ -27,11 +27,12 @@ public class Course {
         this.name = createCourse.name();
         this.category = createCourse.category();
     }
-    public Course updateCourse(CreateCourse createCourse){
+
+    public void updateCourse(CreateCourse createCourse) {
         this.name = createCourse.name();
         this.category = createCourse.category();
-        return this;
 
     }
+
 }
 
